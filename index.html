@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic Sorting Station</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f7fa;
+      color: #17202a;
+    }
+
+    header {
+      background: #17202a;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 25px auto;
+      padding: 15px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    }
+
+    .status {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .start {
+      background: #198754;
+      color: white;
+    }
+
+    .stop {
+      background: #dc3545;
+      color: white;
+    }
+
+    .reset {
+      background: #6c757d;
+      color: white;
+    }
+
+    .metric {
+      display: inline-block;
+      width: 28%;
+      min-width: 150px;
+      margin: 5px;
+      padding: 15px;
+      background: #eef3f7;
+      border-radius: 10px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 26px;
+    }
+
+    #log {
+      background: #111;
+      color: #00ff88;
+      padding: 15px;
+      border-radius: 8px;
+      min-height: 120px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🤖 Agentic Sorting Station</h1>
+  <p>Human + AI Agent + Physical Sorting System</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Station Status</h2>
+    <div id="status" class="status">STOPPED</div>
+
+    <button class="start" onclick="startSorting()">START SORTING</button>
+    <button class="stop" onclick="stopSorting()">STOP</button>
+    <button class="reset" onclick="resetStation()">RESET</button>
+  </div>
+
+  <div class="card">
+    <h2>Sorting Statistics</h2>
+
+    <div class="metric">
+      <strong id="total">0</strong>
+      Total
+    </div>
+
+    <div class="metric">
+      <strong id="accepted">0</strong>
+      Accepted
+    </div>
+
+    <div class="metric">
+      <strong id="rejected">0</strong>
+      Rejected
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>AI Agent Control</h2>
+
+    <p>
+      An AI agent can use the WebMCP tools exposed by this webpage
+      to inspect and control the sorting station.
+    </p>
+
+    <p>
+      Try asking the agent:
+    </p>
+
+    <ul>
+      <li>"What is the current station status?"</li>
+      <li>"Start the sorting station."</li>
+      <li>"Stop the sorting station."</li>
+      <li>"How many objects have been sorted?"</li>
+      <li>"Reset the sorting statistics."</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>System Log</h2>
+    <div id="log">System initialized.</div>
+  </div>
+
+</div>
+
+<script>
+
+let running = false;
+let total = 0;
+let accepted = 0;
+let rejected = 0;
+
+function updateDisplay() {
+
+  document.getElementById("status").innerText =
+    running ? "RUNNING" : "STOPPED";
+
+  document.getElementById("total").innerText = total;
+  document.getElementById("accepted").innerText = accepted;
+  document.getElementById("rejected").innerText = rejected;
+}
+
+function addLog(message) {
+
+  const log = document.getElementById("log");
+
+  const time = new Date().toLocaleTimeString();
+
+  log.innerText += "\n[" + time + "] " + message;
+}
+
+function startSorting() {
+
+  running = true;
+
+  updateDisplay();
+
+  addLog("Sorting station STARTED.");
+
+  return "Sorting station started successfully.";
+}
+
+function stopSorting() {
+
+  running = false;
+
+  updateDisplay();
+
+  addLog("Sorting station STOPPED.");
+
+  return "Sorting station stopped successfully.";
+}
+
+function resetStation() {
+
+  running = false;
+  total = 0;
+  accepted = 0;
+  rejected = 0;
+
+  updateDisplay();
+
+  addLog("Statistics RESET.");
+
+  return "Sorting station statistics reset.";
+}
+
+
+/* -----------------------------
+   WebMCP TOOLS
+----------------------------- */
+
+if ("modelContext" in document) {
+
+  document.modelContext.registerTool({
+
+    name: "get_station_status",
+
+    title: "Get Sorting Station Status",
+
+    description:
+      "Get the current operating status and sorting statistics of the physical sorting station.",
+
+    inputSchema: {
+      type: "object",
+      properties: {}
+    },
+
+    annotations: {
+      readOnlyHint: true
+    },
+
+    execute: async () => {
+
+      return {
+        status: running ? "RUNNING" : "STOPPED",
+        total: total,
+        accepted: accepted,
+        rejected: rejected
+      };
+
+    }
+
+  });
+
+
+  document.modelContext.registerTool({
+
+    name: "start_sorting",
+
+    title: "Start Sorting Station",
+
+    description:
+      "Start the automated physical sorting station.",
+
+    inputSchema: {
+      type: "object",
+      properties: {}
+    },
+
+    annotations: {
+      readOnlyHint: false
+    },
+
+    execute: async () => {
+
+      return startSorting();
+
+    }
+
+  });
+
+
+  document.modelContext.registerTool({
+
+    name: "stop_sorting",
+
+    title: "Stop Sorting Station",
+
+    description:
+      "Stop the automated physical sorting station.",
+
+    inputSchema: {
+      type: "object",
+      properties: {}
+    },
+
+    annotations: {
+      readOnlyHint: false
+    },
+
+    execute: async () => {
+
+      return stopSorting();
+
+    }
+
+  });
+
+
+  document.modelContext.registerTool({
+
+    name: "reset_station",
+
+    title: "Reset Sorting Station",
+
+    description:
+      "Reset sorting station statistics and return the station to stopped state.",
+
+    inputSchema: {
+      type: "object",
+      properties: {}
+    },
+
+    annotations: {
+      readOnlyHint: false
+    },
+
+    execute: async () => {
+
+      return resetStation();
+
+    }
+
+  });
+
+}
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
